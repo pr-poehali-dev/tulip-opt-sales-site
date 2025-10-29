@@ -1,221 +1,308 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import Icon from '@/components/ui/icon';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Icon from "@/components/ui/icon";
+import { toast } from "sonner";
 
-const cityMapping: Record<string, string> = {
-  'krasnoyarsk': 'Красноярске',
-  'abakan': 'Абакане',
-  'nsk': 'Новосибирске',
-  'irkutsk': 'Иркутске',
-  'ulan-ude': 'Улан-Удэ',
-  'msk': 'Москве',
-  'kizil': 'Кызыле',
-  'kemerovo': 'Кемерово',
-  'novokuzneck': 'Новокузнецке',
-};
+const cities = [
+  { id: "krasnoyarsk", name: "Красноярск" },
+  { id: "abakan", name: "Абакан" },
+  { id: "nsk", name: "Новосибирск" },
+  { id: "irkutsk", name: "Иркутск" },
+  { id: "ulan-ude", name: "Улан-Удэ" },
+  { id: "msk", name: "Москва" },
+  { id: "kyzyl", name: "Кызыл" },
+  { id: "kemerovo", name: "Кемерово" },
+  { id: "novokuzneck", name: "Новокузнецк" },
+];
 
 const tulipVarieties = [
   {
-    name: 'Красный Апельдорн',
-    color: 'Ярко-красный',
-    height: '50-60 см',
-    flowering: 'Апрель-май',
-    image: 'https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/477b68d8-7abd-4c87-a77b-22b947cfe9a8.jpg',
-    price: '250₽/стебель'
+    name: "Красный шар",
+    color: "Ярко-красный",
+    height: "40-50 см",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/cacd0479-bef1-4f54-bac1-974fea63029a.jpg",
   },
   {
-    name: 'Белый Лайон',
-    color: 'Чисто-белый',
-    height: '45-55 см',
-    flowering: 'Март-апрель',
-    image: 'https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/ff04f7b0-bfb3-4916-b9e1-bea8d2efc364.jpg',
-    price: '230₽/стебель'
+    name: "Желтое солнце",
+    color: "Золотисто-желтый",
+    height: "45-55 см",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/11fbe8db-86ec-49fc-9a79-cfe5b93fb576.jpg",
   },
   {
-    name: 'Розовый Анжелика',
-    color: 'Нежно-розовый',
-    height: '40-50 см',
-    flowering: 'Апрель-май',
-    image: 'https://v3b.fal.media/files/b/rabbit/Ing9Voc3nxSUJSJgtYBAF_output.png',
-    price: '240₽/стебель'
+    name: "Розовая мечта",
+    color: "Нежно-розовый",
+    height: "35-45 см",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/b816ae2d-5d13-47f4-bc3d-e7ec1e7fa739.jpg",
+  },
+  {
+    name: "Белоснежка",
+    color: "Белый",
+    height: "40-50 см",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/cacd0479-bef1-4f54-bac1-974fea63029a.jpg",
   },
 ];
 
 const advantages = [
-  {
-    icon: 'Flower2',
-    title: 'Прямые поставки',
-    description: 'От производителя из Голландии и России — лучшие цены на рынке'
-  },
-  {
-    icon: 'Truck',
-    title: 'Быстрая доставка',
-    description: 'Доставка до вашего склада в любом городе России'
-  },
-  {
-    icon: 'Shield',
-    title: 'Контроль качества',
-    description: 'Свежий срез и строгий контроль на каждом этапе'
-  },
-  {
-    icon: 'TrendingDown',
-    title: 'Гибкие скидки',
-    description: 'Система скидок для крупного опта — чем больше заказ, тем выгоднее'
-  },
-  {
-    icon: 'Users',
-    title: 'Личный менеджер',
-    description: 'Индивидуальный подход и поддержка на всех этапах сделки'
-  },
-  {
-    icon: 'Award',
-    title: 'Гарантия качества',
-    description: 'Официальный договор и гарантия свежести цветов'
-  },
+  { icon: "TrendingDown", title: "Прямые поставки = низкая цена", desc: "Без посредников" },
+  { icon: "Sparkles", title: "Свежий срез", desc: "Прямо с полей" },
+  { icon: "ShieldCheck", title: "Контроль качества", desc: "Только лучшие цветы" },
+  { icon: "Truck", title: "Доставка до склада", desc: "По всей России" },
+  { icon: "UserCheck", title: "Персональный менеджер", desc: "Всегда на связи" },
+  { icon: "BadgePercent", title: "Оптовые цены", desc: "От производителя" },
 ];
 
 const steps = [
-  { number: 1, title: 'Оставьте заявку', description: 'Заполните форму на сайте или позвоните' },
-  { number: 2, title: 'Консультация', description: 'Менеджер свяжется и уточнит детали заказа' },
-  { number: 3, title: 'Договор онлайн', description: 'Подписываем договор удаленно' },
-  { number: 4, title: 'Предоплата 30%', description: 'Вносите предоплату удобным способом' },
-  { number: 5, title: 'Получение', description: 'Забираете заказ на складе в вашем городе' },
+  { icon: "FileText", title: "Оставляете заявку", desc: "На сайте или по телефону" },
+  { icon: "Phone", title: "Менеджер связывается", desc: "В течение 30 минут" },
+  { icon: "FileSignature", title: "Заключаете договор", desc: "Удаленно, онлайн" },
+  { icon: "CreditCard", title: "Вносите предоплату", desc: "Безопасный платеж" },
+  { icon: "Package", title: "Получаете заказ", desc: "На нашем складе" },
 ];
 
 const testimonials = [
+  { company: "Цветочный рай", city: "Москва", text: "Работаем с компанией третий год. Всегда свежие цветы, отличные цены и стабильное качество. Рекомендуем!" },
+  { company: "Флора-Сибирь", city: "Красноярск", text: "Лучший поставщик тюльпанов в регионе! Быстрая доставка, все цветы в идеальном состоянии." },
+  { company: "Букет 24", city: "Новосибирск", text: "Заказывали крупную партию к 8 марта - всё прошло безупречно. Спасибо за профессионализм!" },
+];
+
+const news = [
   {
-    company: 'Сеть "Цветочный рай"',
-    city: 'Красноярск',
-    text: 'Работаем второй сезон. Качество отличное, цены адекватные. Тюльпаны всегда свежие, клиенты довольны!',
-    author: 'Анна Петрова'
+    title: "Новые сорта тюльпанов 2025",
+    date: "15 января 2025",
+    preview: "В этом сезоне мы добавили 12 новых эксклюзивных сортов голландских тюльпанов в наш каталог...",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/cacd0479-bef1-4f54-bac1-974fea63029a.jpg",
   },
   {
-    company: 'ИП Соколов',
-    city: 'Новосибирск',
-    text: 'Заказывали на 8 марта 5000 тюльпанов. Всё пришло вовремя, упаковка отличная. Рекомендую!',
-    author: 'Дмитрий Соколов'
+    title: "Раннее бронирование к 8 марта",
+    date: "10 января 2025",
+    preview: "Успейте забронировать тюльпаны к 8 марта со скидкой 15%. Предложение действует до конца января...",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/11fbe8db-86ec-49fc-9a79-cfe5b93fb576.jpg",
   },
   {
-    company: 'Магазин "Флора"',
-    city: 'Москва',
-    text: 'Прямые поставки — это реально выгодно. Сэкономили почти 40% по сравнению с местными поставщиками.',
-    author: 'Елена Васильева'
+    title: "Открытие нового склада в Иркутске",
+    date: "5 января 2025",
+    preview: "Рады сообщить об открытии нашего нового распределительного центра в Иркутске...",
+    image: "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/b816ae2d-5d13-47f4-bc3d-e7ec1e7fa739.jpg",
   },
 ];
 
+const gallery = [
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/cacd0479-bef1-4f54-bac1-974fea63029a.jpg",
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/11fbe8db-86ec-49fc-9a79-cfe5b93fb576.jpg",
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/b816ae2d-5d13-47f4-bc3d-e7ec1e7fa739.jpg",
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/cacd0479-bef1-4f54-bac1-974fea63029a.jpg",
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/11fbe8db-86ec-49fc-9a79-cfe5b93fb576.jpg",
+  "https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/b816ae2d-5d13-47f4-bc3d-e7ec1e7fa739.jpg",
+];
+
 export default function Index() {
-  const [city, setCity] = useState('Красноярске');
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    city: '',
-  });
+  const [selectedCity, setSelectedCity] = useState("krasnoyarsk");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [formData, setFormData] = useState({ name: "", phone: "", city: "Красноярск" });
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
-    const hostname = window.location.hostname;
-    const subdomain = hostname.split('.')[0];
-    const detectedCity = cityMapping[subdomain] || 'Красноярске';
-    setCity(detectedCity);
-    setFormData(prev => ({ ...prev, city: detectedCity }));
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const currentCity = cities.find((c) => c.id === selectedCity)?.name || "Красноярск";
+
+  const handleCityChange = (cityId: string) => {
+    setSelectedCity(cityId);
+    setFormData((prev) => ({ ...prev, city: cities.find((c) => c.id === cityId)?.name || "" }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Заявка отправлена:', formData);
-    alert('Спасибо! Мы свяжемся с вами в ближайшее время.');
+    toast.success("Спасибо, ваша заявка принята!", {
+      description: "Наш менеджер свяжется с вами в ближайшее время",
+    });
+    setFormData({ name: "", phone: "", city: currentCity });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Icon name="Flower2" className="text-primary" size={32} />
-              <span className="text-2xl font-heading font-bold text-primary">ТюльпаныОптом.рф</span>
-            </div>
-            <nav className="hidden md:flex gap-6 items-center">
-              <a href="#catalog" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Каталог</a>
-              <a href="#advantages" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Преимущества</a>
-              <a href="#cooperation" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Сотрудничество</a>
-              <a href="#reviews" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Отзывы</a>
-              <a href="#contacts" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Контакты</a>
-            </nav>
-            <a href="tel:+78001234567" className="hidden md:flex items-center gap-2 font-medium text-primary">
-              <Icon name="Phone" size={20} />
-              8 (800) 123-45-67
-            </a>
+    <div className="min-h-screen bg-white">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? "bg-white shadow-md" : "bg-white/95 backdrop-blur-sm"
+        }`}
+      >
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🌷</span>
+            <span className="font-heading font-bold text-xl text-primary">ТюльпаныОптом.рф</span>
           </div>
+
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#catalog" className="text-foreground hover:text-primary transition">
+              Каталог
+            </a>
+            <a href="#gallery" className="text-foreground hover:text-primary transition">
+              Фотогалерея
+            </a>
+            <a href="#news" className="text-foreground hover:text-primary transition">
+              Новости
+            </a>
+            <a href="#about" className="text-foreground hover:text-primary transition">
+              О компании
+            </a>
+          </nav>
+
+          <Select value={selectedCity} onValueChange={handleCityChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.id}>
+                  {city.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </header>
 
-      <section className="relative bg-gradient-to-br from-muted via-background to-accent/5 py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwYjk4MSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="animate-fade-in">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground mb-6 leading-tight">
-                Тюльпаны оптом от производителя купить в <span className="text-primary">{city}</span>
-              </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Прямые поставки из Голландии и России. Свежие цветы высшего качества к 8 марта по оптовым ценам.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="text-lg px-8" onClick={() => document.getElementById('request-form')?.scrollIntoView({ behavior: 'smooth' })}>
-                  Получить расчёт
-                  <Icon name="ArrowRight" size={20} className="ml-2" />
-                </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}>
-                  Смотреть каталог
-                </Button>
+      <section
+        className="pt-32 pb-20 bg-gradient-to-br from-green-50 via-pink-50 to-yellow-50 animate-fade-in"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(${gallery[0]})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="font-heading font-bold text-4xl md:text-6xl text-foreground mb-6 animate-slide-up">
+              Тюльпаны оптом от производителя купить в {currentCity}
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Свежие тюльпаны напрямую от производителя к 8 Марта. Низкие оптовые цены и гарантия качества
+            </p>
+            <Button size="lg" className="text-lg px-8 py-6" onClick={() => document.getElementById("form-1")?.scrollIntoView({ behavior: "smooth" })}>
+              Оставить заявку
+              <Icon name="ArrowRight" className="ml-2" size={20} />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section id="catalog" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Каталог сортов тюльпанов</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {tulipVarieties.map((variety, idx) => (
+              <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={variety.image}
+                    alt={variety.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="font-heading font-bold text-xl mb-2">{variety.name}</h3>
+                  <p className="text-muted-foreground mb-1">
+                    <span className="font-semibold">Цвет:</span> {variety.color}
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold">Высота:</span> {variety.height}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Наши преимущества</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {advantages.map((advantage, idx) => (
+              <div key={idx} className="flex flex-col items-center text-center group">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all">
+                  <Icon name={advantage.icon as any} className="text-primary group-hover:text-white transition-colors" size={32} />
+                </div>
+                <h3 className="font-heading font-semibold text-lg mb-2">{advantage.title}</h3>
+                <p className="text-muted-foreground">{advantage.desc}</p>
               </div>
-            </div>
-            <div className="animate-scale-in">
-              <img 
-                src="https://cdn.poehali.dev/projects/fc238657-f72d-428b-8c7c-3d7c165de451/files/864d22de-3884-49dc-9e8c-953d9c702af4.jpg" 
-                alt="Свежие тюльпаны оптом" 
-                className="rounded-2xl shadow-2xl w-full object-cover"
-              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Схема сотрудничества</h2>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative">
+              {steps.map((step, idx) => (
+                <div key={idx} className="flex flex-col items-center text-center relative">
+                  <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4 relative z-10">
+                    <Icon name={step.icon as any} className="text-accent" size={28} />
+                  </div>
+                  <div className="absolute top-8 left-1/2 w-full h-0.5 bg-accent/20 hidden md:block" style={{ left: idx === 4 ? "50%" : "100%" }} />
+                  <div className="bg-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 relative z-10">
+                    {idx + 1}
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground">{step.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section id="catalog" className="py-20 bg-background">
+      <section id="gallery" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Каталог сортов тюльпанов</h2>
-            <p className="text-lg text-muted-foreground">Выберите из лучших сортов для вашего бизнеса</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {tulipVarieties.map((variety, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 animate-slide-up border-2 hover:border-primary">
-                <div className="aspect-square overflow-hidden">
-                  <img src={variety.image} alt={variety.name} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Фотогалерея</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {gallery.map((image, idx) => (
+              <div
+                key={idx}
+                className="relative h-64 overflow-hidden rounded-lg cursor-pointer group"
+                onClick={() => setLightboxImage(image)}
+              >
+                <img src={image} alt={`Галерея ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <Icon name="ZoomIn" className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={32} />
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Отзывы довольных клиентов</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, idx) => (
+              <Card key={idx} className="bg-gradient-to-br from-green-50 to-pink-50">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-heading font-bold text-foreground mb-3">{variety.name}</h3>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Icon name="Palette" size={16} className="text-primary" />
-                      <span>Цвет: {variety.color}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Icon name="Ruler" size={16} className="text-primary" />
-                      <span>Высота: {variety.height}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Icon name="Calendar" size={16} className="text-primary" />
-                      <span>Цветение: {variety.flowering}</span>
+                  <div className="flex items-center mb-4">
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Icon key={i} name="Star" size={16} className="fill-current" />
+                      ))}
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary">{variety.price}</span>
-                    <Button variant="outline" size="sm">
-                      Заказать
-                    </Button>
+                  <p className="text-foreground mb-4 italic">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <p className="font-semibold">{testimonial.company}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.city}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -224,233 +311,152 @@ export default function Index() {
         </div>
       </section>
 
-      <section id="advantages" className="py-20 bg-muted/30">
+      <section id="news" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Наши преимущества</h2>
-            <p className="text-lg text-muted-foreground">Почему выбирают нас</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {advantages.map((advantage, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-primary">
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/10 p-3 rounded-xl">
-                    <Icon name={advantage.icon} className="text-primary" size={28} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-heading font-bold text-foreground mb-2">{advantage.title}</h3>
-                    <p className="text-sm text-muted-foreground">{advantage.description}</p>
-                  </div>
+          <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-12">Новости</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {news.map((item, idx) => (
+              <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="relative h-48 overflow-hidden">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
                 </div>
+                <CardContent className="p-6">
+                  <p className="text-sm text-muted-foreground mb-2">{item.date}</p>
+                  <h3 className="font-heading font-bold text-lg mb-2 hover:text-primary transition-colors">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.preview}</p>
+                </CardContent>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="cooperation" className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Схема сотрудничества</h2>
-            <p className="text-lg text-muted-foreground">Всего 5 простых шагов до вашего заказа</p>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            {steps.map((step, index) => (
-              <div key={index} className="flex gap-6 mb-8 last:mb-0 items-start animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="flex-shrink-0 w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-heading font-bold text-2xl shadow-lg">
-                  {step.number}
-                </div>
-                <div className="flex-1 bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-heading font-bold text-foreground mb-2">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="reviews" className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Отзывы довольных клиентов</h2>
-            <p className="text-lg text-muted-foreground">Что говорят наши партнёры</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-2 mb-4">
-                  <Icon name="Quote" className="text-accent" size={24} />
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Icon key={i} name="Star" className="text-yellow-400 fill-yellow-400" size={16} />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4 italic">"{testimonial.text}"</p>
-                <div className="border-t border-border pt-4">
-                  <p className="font-semibold text-foreground">{testimonial.author}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.company}</p>
-                  <p className="text-xs text-primary">{testimonial.city}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="request-form" className="py-20 bg-background">
+      <section id="form-1" className="py-20 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
-            <Card className="p-8 shadow-xl border-2 border-primary/20">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Получить расчёт стоимости</h2>
-                <p className="text-lg text-muted-foreground">Оставьте заявку и наш менеджер свяжется с вами в течение 15 минут</p>
-              </div>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Ваше имя</label>
-                  <Input 
-                    type="text" 
-                    placeholder="Иван Иванов" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    className="text-lg h-12"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Телефон</label>
-                  <Input 
-                    type="tel" 
-                    placeholder="+7 (___) ___-__-__" 
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                    className="text-lg h-12"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Город</label>
-                  <Input 
-                    type="text" 
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    required
-                    className="text-lg h-12 bg-muted"
-                  />
-                </div>
-                <Button type="submit" size="lg" className="w-full text-lg h-14">
-                  Отправить заявку
-                  <Icon name="Send" size={20} className="ml-2" />
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
-                </p>
-              </form>
+            <h2 className="font-heading font-bold text-3xl md:text-4xl text-center mb-4">Оставить заявку</h2>
+            <p className="text-center text-muted-foreground mb-8">Заполните форму и получите коммерческое предложение в течение 30 минут</p>
+            <Card>
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="name">Ваше имя</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Иван Иванов"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Телефон</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+7 (999) 123-45-67"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="form-city">Город</Label>
+                    <Input id="form-city" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} readOnly />
+                  </div>
+                  <Button type="submit" size="lg" className="w-full">
+                    Получить коммерческое предложение
+                    <Icon name="Send" className="ml-2" size={18} />
+                  </Button>
+                </form>
+              </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      <section id="contacts" className="py-20 bg-muted/30">
+      <footer id="about" className="bg-secondary text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">Контакты</h2>
-            <p className="text-lg text-muted-foreground">Мы всегда на связи</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="p-8">
-              <h3 className="text-xl font-heading font-bold text-foreground mb-6">Общие контакты</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Icon name="Phone" className="text-primary" size={24} />
-                  <div>
-                    <p className="font-medium text-foreground">Телефон</p>
-                    <a href="tel:+78001234567" className="text-primary hover:underline">8 (800) 123-45-67</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Icon name="Mail" className="text-primary" size={24} />
-                  <div>
-                    <p className="font-medium text-foreground">Email</p>
-                    <a href="mailto:info@tulipany-optom.ru" className="text-primary hover:underline">info@tulipany-optom.ru</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Icon name="Clock" className="text-primary" size={24} />
-                  <div>
-                    <p className="font-medium text-foreground">Режим работы</p>
-                    <p className="text-muted-foreground">Пн-Вс: 8:00 - 20:00</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-8">
-              <h3 className="text-xl font-heading font-bold text-foreground mb-6">Склад в {city}</h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Icon name="MapPin" className="text-primary mt-1" size={24} />
-                  <div>
-                    <p className="font-medium text-foreground">Адрес склада</p>
-                    <p className="text-muted-foreground">г. {city}, ул. Складская, д. 1</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Icon name="Package" className="text-primary mt-1" size={24} />
-                  <div>
-                    <p className="font-medium text-foreground">Забор заказов</p>
-                    <p className="text-muted-foreground">Только по предварительной записи</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <footer className="bg-secondary text-secondary-foreground py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Icon name="Flower2" size={28} />
-                <span className="text-xl font-heading font-bold">ТюльпаныОптом.рф</span>
+                <span className="text-3xl">🌷</span>
+                <span className="font-heading font-bold text-xl">ТюльпаныОптом.рф</span>
               </div>
-              <p className="text-sm opacity-80">Прямые поставки тюльпанов от производителя по всей России</p>
+              <p className="text-white/80 mb-4">Оптовая продажа тюльпанов от производителя по всей России</p>
+              <div className="flex gap-4">
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                  <Icon name="MessageCircle" size={20} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                  <Icon name="Send" size={20} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                  <Icon name="Facebook" size={20} />
+                </a>
+              </div>
             </div>
+
             <div>
-              <h4 className="font-heading font-bold mb-4">Навигация</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#catalog" className="hover:opacity-100 transition-opacity">Каталог</a></li>
-                <li><a href="#advantages" className="hover:opacity-100 transition-opacity">Преимущества</a></li>
-                <li><a href="#cooperation" className="hover:opacity-100 transition-opacity">Сотрудничество</a></li>
-                <li><a href="#reviews" className="hover:opacity-100 transition-opacity">Отзывы</a></li>
-              </ul>
+              <h3 className="font-heading font-bold text-lg mb-4">Наши города</h3>
+              <div className="space-y-2">
+                {cities.map((city) => (
+                  <a key={city.id} href="#" className="block text-white/80 hover:text-white transition">
+                    Купить тюльпаны оптом {city.name}
+                  </a>
+                ))}
+              </div>
             </div>
+
             <div>
-              <h4 className="font-heading font-bold mb-4">Контакты</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li>8 (800) 123-45-67</li>
-                <li>info@tulipany-optom.ru</li>
-                <li>Пн-Вс: 8:00 - 20:00</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold mb-4">Города</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li>Красноярск</li>
-                <li>Новосибирск</li>
-                <li>Москва</li>
-                <li>+ 7 других городов</li>
-              </ul>
+              <h3 className="font-heading font-bold text-lg mb-4">Контакты</h3>
+              <div className="space-y-3">
+                <a href="tel:+79999999999" className="flex items-center gap-2 text-white/80 hover:text-white transition">
+                  <Icon name="Phone" size={18} />
+                  +7 (999) 999-99-99
+                </a>
+                <div className="flex items-center gap-2 text-white/80">
+                  <Icon name="Mail" size={18} />
+                  info@тюльпаныоптом.рф
+                </div>
+                <div>
+                  <Label htmlFor="footer-city" className="text-white/80 block mb-2">
+                    Выберите город:
+                  </Label>
+                  <Select value={selectedCity} onValueChange={handleCityChange}>
+                    <SelectTrigger id="footer-city" className="bg-white/10 border-white/20 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city.id} value={city.id}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="border-t border-white/20 pt-8 text-center text-sm opacity-70">
-            <p>© 2024 ТюльпаныОптом.рф. Все права защищены.</p>
+
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
+            <p>© 2025 ТюльпаныОптом.рф — Все права защищены</p>
           </div>
         </div>
       </footer>
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button className="absolute top-4 right-4 text-white hover:text-gray-300" onClick={() => setLightboxImage(null)}>
+            <Icon name="X" size={32} />
+          </button>
+          <img src={lightboxImage} alt="Полноэкранный просмотр" className="max-w-full max-h-full object-contain" />
+        </div>
+      )}
     </div>
   );
 }
