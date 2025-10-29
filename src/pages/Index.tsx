@@ -138,7 +138,8 @@ export default function Index() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌷</span>
-            <span className="font-heading font-bold text-xl text-primary">ТюльпаныОптом.рф</span>
+            <span className="font-heading font-bold text-xl text-primary mx-0">Цветочная Компания
+ИП Некрасов</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8">
