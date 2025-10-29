@@ -138,8 +138,7 @@ export default function Index() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌷</span>
-            <span className="font-heading font-bold text-xl text-primary mx-0">Цветочная Компания
-ИП Некрасов</span>
+            <span className="font-heading font-bold text-xl text-primary mx-0 px-0">Цветочная компания ИП Некрасов</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -185,9 +184,8 @@ export default function Index() {
             <h1 className="font-heading font-bold text-4xl md:text-6xl text-foreground mb-6 animate-slide-up">
               Тюльпаны оптом от производителя купить в {currentCity}
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Свежие тюльпаны напрямую от производителя к 8 Марта. Низкие оптовые цены и гарантия качества
-            </p>
+            <p className="text-xl text-muted-foreground mb-8">Свежие тюльпаны напрямую от производителя к 8 Марта. 
+Низкие оптовые цены и гарантия качества!</p>
             <Button size="lg" className="text-lg px-8 py-6" onClick={() => document.getElementById("form-1")?.scrollIntoView({ behavior: "smooth" })}>
               Оставить заявку
               <Icon name="ArrowRight" className="ml-2" size={20} />
